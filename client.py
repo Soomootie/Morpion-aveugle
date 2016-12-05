@@ -1,8 +1,12 @@
 import socket
 from grid import *
 
+import os,platform
 
-
+if platform.system() == "Linux":
+    os.system("clear")
+else:
+    os.system("cls")
 
 PORT = 7777
 HOST = "localhost"
@@ -33,10 +37,7 @@ while grids[0].gameOver() == -1:
                 shot = int(mesg)
             except ValueError:
                 print("Veuillez entrer un entier")
-                
-            if mesg == 'close':
-                s.close()
-                break
+
         if grids[0].cells[shot] != EMPTY:
             print("Coup invalide %d" % shot)
             grids[1].cells[shot] = grids[0].cells[shot]
@@ -54,9 +55,12 @@ while grids[0].gameOver() == -1:
         break
 
     print("En attente ...")
-    response = s.recv(BUFFER)
-    grids[0].play(2,int(response.decode()))
-    
+    response = s.recv(BUFFER).decode()
+    if response != 'Deconnection adversaire':
+        grids[0].play(2,int(response))
+    else:
+        print("OOPS")
+        grids = [grid(), grid()]
     if grids[0].gameOver() != -1:
         grids[0].display()
         grids[0].printResult()

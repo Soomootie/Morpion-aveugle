@@ -18,17 +18,31 @@ while(True):
     (l_rs, l_w, l_e) = select.select(liste_sockets,[],[])
     for i in range(len(l_rs)):
         if l_rs[i] == s:
-            print(len(liste_sockets))
             (socketx, address) = s.accept() #authorisation de connection
-            print("Connection de {}".format(address[0]))
+            print("Connection de {}".format(address[1]))
             liste_sockets.append(socketx)
-            print(len(liste_sockets))
             if len(liste_sockets) == 2:
                 socketx.send("Premier joueur".encode())
-            else:
+            elif len(liste_sockets) == 3:
                 socketx.send("Second joueur".encode())
+                print("l_rs : ", liste_sockets)
+                try:
+                    mesg = l_rs[i].recv(BUFFER)
+                except OSError:
+                    print("OSError")
+            else:
+                socketx.send("Spectateur".encode())
         else:
-            mesg = l_rs[i].recv(BUFFER) #reception des donnees
+            try:
+                mesg = l_rs[i].recv(BUFFER) #reception des donnees
+            except ConnectionResetError:
+                print("La connection à été perdue")
+                liste_sockets.remove(l_rs[i])
+                liste_sockets[1].send('Deconnection adversaire'.encode())
+                print("Close")
+                l_rs[i].close()
+                break
+                
             print("Mesg :",mesg.decode())
             if len(mesg) == 0:
                 liste_sockets.remove(l_rs[i])
