@@ -16,6 +16,8 @@ liste_sockets.append(s)
 
 while(True):
     (l_rs, l_w, l_e) = select.select(liste_sockets,[],[])
+    mesg = ''
+    reset = 1
     for i in range(len(l_rs)):
         if l_rs[i] == s:
             (socketx, address) = s.accept() #authorisation de connection
@@ -25,32 +27,38 @@ while(True):
                 socketx.send("Premier joueur".encode())
             elif len(liste_sockets) == 3:
                 socketx.send("Second joueur".encode())
-                print("l_rs : ", liste_sockets)
+                print("Mesg %s:"%mesg)
+                if mesg != '':
+                    for j in range(len(liste_sockets)):
+                        if liste_sockets[j] != s and liste_sockets[j] != l_rs[i]:
+                            liste_sockets[j].send(mesg)
+                            print("Send :",mesg.decode())
                 try:
                     mesg = l_rs[i].recv(BUFFER)
                 except OSError:
                     print("OSError")
             else:
                 socketx.send("Spectateur".encode())
+
         else:
             try:
                 mesg = l_rs[i].recv(BUFFER) #reception des donnees
             except ConnectionResetError:
-                print("La connection à été perdue")
-                liste_sockets.remove(l_rs[i])
-                liste_sockets[1].send('Deconnection adversaire'.encode())
-                print("Close")
-                l_rs[i].close()
-                break
+                print("La connection a été perdue")
+                print("Mesg perte connection %s:"%mesg)
+                reset = 0
                 
-            print("Mesg :",mesg.decode())
-            if len(mesg) == 0:
+            if len(mesg) == 0 or reset == 0:
                 liste_sockets.remove(l_rs[i])
-                print("Close")
+                if len(liste_sockets) == 2 :
+                    liste_sockets[1].send('Deconnection adversaire'.encode())
+                print("Close if longueur")
                 l_rs[i].close()
             else:
+                print("Mesg :",mesg.decode())
                 for j in range(len(liste_sockets)):
                     if liste_sockets[j] != s and liste_sockets[j] != l_rs[i]:
+                        print("Avant send mesg %s:"%mesg)
                         liste_sockets[j].send(mesg)
                         print("Send :",mesg.decode())
 s.close()
