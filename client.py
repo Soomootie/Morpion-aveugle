@@ -12,21 +12,27 @@ PORT = 7777
 HOST = "localhost"
 BUFFER = 1024
 
+FIRST = "Premier joueur"
+SECOND = "Second joueur"
+DISCO = "Deconnection adversaire"
+
 s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM, proto = 0)
 s.connect((HOST,PORT))
 
 player = ""
 player = s.recv(BUFFER).decode()
 
-print("Connecté")
-
 grids = [grid(), grid()]
 grids[1].display()
 
-if player != "Premier joueur":
-    print("En attente ...")
+if player == FIRST:
+    print("En attente d'un second joueur...")
     response = s.recv(BUFFER).decode()
-    while response == "Deconnection adversaire":
+    while response != SECOND:
+        response = s.recv(BUFFER).decode()
+if player == SECOND:
+    response = s.recv(BUFFER).decode()
+    while response == DISCO or response == SECOND:
         response = s.recv(BUFFER).decode()
     grids[0].play(2,int(response))
     
@@ -44,7 +50,7 @@ while grids[0].gameOver() == -1:
         if grids[0].cells[shot] != EMPTY:
             print("Coup invalide %d" % shot)
             grids[1].cells[shot] = grids[0].cells[shot]
-            grids[0].display()
+            grids[1].display()
             shot = -1
         else:  
             grids[0].play(1,shot)
@@ -57,16 +63,31 @@ while grids[0].gameOver() == -1:
         grids[0].printResult()
         break
 
-    print("En attente ...")
-    response = s.recv(BUFFER).decode()
-    if response != 'Deconnection adversaire':
-        grids[0].play(2,int(response))
+    
+    try:
+        print("Le second joueur reflechi...")
+        response = s.recv(BUFFER).decode()
+        response = response[0:len(DISCO)]
+    except ConnectionAbortedError:
+        print("Votre adversaire est parti !")
+        response = DISCO
+    if response != DISCO:
+        response = response[len(response)-1]
+        if response != '' and response.isdigit():
+            grids[0].play(2,int(response))
     else:
-        while response == "Deconnection adversaire":
-            response = s.recv(BUFFER).decode()
+        while response == DISCO:
+            try:
+                response = s.recv(BUFFER).decode()
+            except ConnectionAbortedError:                
+                response = DISCO
+            
         print("OOPS, votre adversaire est parti !")
-        
+
         grids = [grid(), grid()]
+        if response != '' and response.isdigit():
+            grids[0].play(2,int(response))
+
     if grids[0].gameOver() != -1:
         grids[0].display()
         grids[0].printResult()
