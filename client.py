@@ -1,15 +1,27 @@
 import socket
 from grid import *
-
+from optparse import OptionParser
 import os,platform
+from docopt import docopt
 
 if platform.system() == "Linux":
     os.system("clear")
 else:
     os.system("cls")
 
+
+help = """Client_morpion_aveugle
+ 
+Usage:
+  client.py [<serveur>]
+ 
+"""
+ 
+arguments = docopt(help)
+print(arguments['<serveur>'])
+
 PORT = 7777
-HOST = "localhost"
+HOST = arguments['<serveur>']
 BUFFER = 1024
 
 FIRST = "Premier joueur"
