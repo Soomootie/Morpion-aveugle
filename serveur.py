@@ -3,6 +3,7 @@
 import socket
 import select
 import threading
+from grid import *
 
 PORT = 7777
 BUFFER = 1500
@@ -13,6 +14,8 @@ s.bind(('',PORT))
 s.listen(1) #ecoute
 liste_sockets = []
 liste_sockets.append(s)
+
+grids = grid()
 
 mesg = ''
 reset = 1
@@ -56,6 +59,7 @@ while(True):
                 if len(liste_sockets) == 2 :
                     liste_sockets[1].send('Deconnection adversaire'.encode())
                 print("Close if longueur")
+                grids = grid()
                 l_rs[i].close()
                 reset = 1
                 mesg = ''
@@ -63,7 +67,9 @@ while(True):
                 print("Mesg :",mesg.decode())
                 for j in range(len(liste_sockets)):
                     if liste_sockets[j] != s and liste_sockets[j] != l_rs[i]:
-                        print("Avant send mesg %s:"%mesg)
+                        #print("Avant send mesg %s:"%mesg)
                         liste_sockets[j].send(mesg)
-                        print("Send :",mesg.decode())
+                        grids.play(j,int(mesg))
+                        grids.display()
+                        #print("Send :",mesg.decode())
 s.close()

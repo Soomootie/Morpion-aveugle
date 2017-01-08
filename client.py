@@ -72,7 +72,8 @@ while grids[0].gameOver() == -1:
         print("Votre adversaire est parti !")
         response = DISCO
     if response != DISCO:
-        response = response[len(response)-1]
+        if response != '':
+            response = response[len(response)-1]
         if response != '' and response.isdigit():
             grids[0].play(2,int(response))
     else:
@@ -85,6 +86,8 @@ while grids[0].gameOver() == -1:
         print("OOPS, votre adversaire est parti !")
 
         grids = [grid(), grid()]
+        grids[0].play(1,shot)
+        grids[1].play(1,shot)
         if response != '' and response.isdigit():
             grids[0].play(2,int(response))
 
